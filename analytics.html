@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Agriculture Price Forecasting</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c5530;
+            --secondary-color: #4a7c59;
+            --accent-color: #7fb069;
+            --light-green: #d0e7b8;
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-green) 0%, #ffffff 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white !important;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--light-green) !important;
+            transform: translateY(-2px);
+        }
+        
+        .analytics-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .analytics-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+            border: none;
+        }
+        
+        .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            font-weight: 500;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+            color: white;
+        }
+        
+        .plot-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .insight-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .analytics-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-seedling me-2"></i>
+                AgriPrice Forecast
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/analytics"><i class="fas fa-chart-line me-1"></i>Analytics</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Analytics Header -->
+    <div class="analytics-header">
+        <div class="container">
+            <h1 class="analytics-title">
+                <i class="fas fa-chart-bar me-3"></i>
+                Market Analytics Dashboard
+            </h1>
+            <p class="lead">
+                Comprehensive insights into agriculture commodity pricing trends
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Error Alert -->
+        {% if error %}
+        <div class="alert alert-danger fade-in" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ error }}
+        </div>
+        {% else %}
+        
+        <!-- Key Insights -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="insight-card fade-in">
+                    <div class="insight-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5>Price Trends</h5>
+                    <p>Analyze historical price movements across different commodities and regions</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="insight-card fade-in">
+                    <div class="insight-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h5>Market Comparison</h5>
+                    <p>Compare average prices across states and identify the best markets</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="insight-card fade-in">
+                    <div class="insight-icon">
+                        <i class="fas fa-chart-area"></i>
+                    </div>
+                    <h5>Volatility Analysis</h5>
+                    <p>Understand price volatility patterns to make informed decisions</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Visualization -->
+        {% if plot_path %}
+        <div class="card fade-in">
+            <div class="card-header">
+                <h4><i class="fas fa-analytics me-2"></i>Comprehensive Market Analysis</h4>
+            </div>
+            <div class="card-body">
+                <div class="plot-container">
+                    <img src="{{ plot_path }}" alt="Market Analytics Dashboard" class="img-fluid">
+                </div>
+                
+                <!-- Analysis Summary -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-lightbulb me-2"></i>Key Insights</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Identifies top performing commodities by average price</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Shows regional price variations across different states</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Reveals seasonal price trends over time</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Highlights price volatility patterns</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Analysis Components</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i><strong>Top Commodities:</strong> Ranked by average market price</li>
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i><strong>State Comparison:</strong> Average prices across different states</li>
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i><strong>Time Trends:</strong> Monthly price evolution over time</li>
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i><strong>Volatility Index:</strong> Price stability by commodity</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Additional Analytics Cards -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h5><i class="fas fa-info-circle me-2"></i>How to Use Analytics</h5>
+                    </div>
+                    <div class="card-body">
+                        <ol>
+                            <li><strong>Price Rankings:</strong> Use the commodity price chart to identify high-value crops</li>
+                            <li><strong>Regional Analysis:</strong> Compare state-wise prices to find the best markets</li>
+                            <li><strong>Trend Analysis:</strong> Study time-based trends to understand seasonal patterns</li>
+                            <li><strong>Risk Assessment:</strong> Use volatility data to understand price stability</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h5><i class="fas fa-tips me-2"></i>Trading Tips</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-star text-warning me-2"></i>Monitor high-price commodities for better profits</li>
+                            <li><i class="fas fa-star text-warning me-2"></i>Consider regional price differences for arbitrage</li>
+                            <li><i class="fas fa-star text-warning me-2"></i>Track seasonal trends for optimal timing</li>
+                            <li><i class="fas fa-star text-warning me-2"></i>Balance high returns with price volatility risks</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Agriculture Price Forecasting System. Built with Flask and Machine Learning.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-hide alerts
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

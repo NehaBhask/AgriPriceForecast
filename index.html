@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Agriculture Price Forecasting{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2c5530;
+            --secondary-color: #4a7c59;
+            --accent-color: #7fb069;
+            --light-green: #d0e7b8;
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-green) 0%, #ffffff 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white !important;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--light-green) !important;
+            transform: translateY(-2px);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+            border: none;
+        }
+        
+        .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(127, 176, 105, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(44, 85, 48, 0.3);
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, var(--success) 0%, #00a085 100%);
+            color: white;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #e17055 100%);
+            color: white;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #d63031 100%);
+            color: white;
+        }
+        
+        .forecast-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .forecast-table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 1rem;
+        }
+        
+        .forecast-table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        
+        .forecast-table tbody tr:hover {
+            background-color: var(--light-green);
+        }
+        
+        .price-card {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+        
+        .price-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, var(--success) 0%, #00a085 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .plot-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .price-value {
+                font-size: 2rem;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-seedling me-2"></i>
+                AgriPrice Forecast
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analytics"><i class="fas fa-chart-line me-1"></i>Analytics</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">
+                <i class="fas fa-chart-line me-3"></i>
+                Agriculture Price Forecasting
+            </h1>
+            <p class="hero-subtitle">
+                Predict commodity prices with advanced analytics to make informed farming decisions
+            </p>
+            {% if stats %}
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.total_records }}</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.unique_states }}</div>
+                    <div class="stat-label">States Covered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.unique_commodities }}</div>
+                    <div class="stat-label">Commodities</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Error Alert -->
+        {% if error %}
+        <div class="alert alert-danger fade-in" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Main Form -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h4><i class="fas fa-search me-2"></i>Select Parameters for Price Forecasting</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="forecastForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-map-marker-alt me-1"></i>State
+                            </label>
+                            <select name="state" class="form-select" id="stateSelect" required>
+                                <option value="">Select State</option>
+                                {% for state in states %}
+                                <option value="{{ state }}" {% if selected_state == state %}selected{% endif %}>{{ state }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-city me-1"></i>District
+                            </label>
+                            <select name="district" class="form-select" id="districtSelect" required>
+                                <option value="">Select District</option>
+                                {% for district in districts %}
+                                <option value="{{ district }}" {% if selected_district == district %}selected{% endif %}>{{ district }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-leaf me-1"></i>Commodity
+                            </label>
+                            <select name="commodity" class="form-select" id="commoditySelect" required>
+                                <option value="">Select Commodity</option>
+                                {% for commodity in commodities %}
+                                <option value="{{ commodity }}" {% if selected_commodity == commodity %}selected{% endif %}>{{ commodity }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-store me-1"></i>Market
+                            </label>
+                            <select name="market" class="form-select" id="marketSelect" required>
+                                <option value="">Select Market</option>
+                                {% for market in markets %}
+                                <option value="{{ market }}" {% if selected_market == market %}selected{% endif %}>{{ market }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-calendar me-1"></i>Forecast Period (Months)
+                            </label>
+                            <select name="months" class="form-select">
+                                <option value="3">3 Months</option>
+                                <option value="6" selected>6 Months</option>
+                                <option value="12">12 Months</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Generate Forecast
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Generating forecast...</p>
+        </div>
+
+        <!-- Results Section -->
+        {% if results %}
+        <div class="row fade-in">
+            <!-- Forecast Table -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-table me-2"></i>Price Forecast</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table forecast-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-calendar me-1"></i>Date</th>
+                                        <th><i class="fas fa-rupee-sign me-1"></i>Predicted Price</th>
+                                        <th><i class="fas fa-chart-line me-1"></i>Trend</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results %}
+                                    <tr>
+                                        <td><strong>{{ result.Date }}</strong></td>
+                                        <td class="text-success"><strong>₹{{ "%.2f"|format(result.Predicted_Price) }}</strong></td>
+                                        <td>
+                                            {% if loop.index > 1 %}
+                                                {% if result.Predicted_Price > results[loop.index-2].Predicted_Price %}
+                                                    <span class="text-success"><i class="fas fa-arrow-up"></i> Rising</span>
+                                                {% else %}
+                                                    <span class="text-danger"><i class="fas fa-arrow-down"></i> Falling</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendation -->
+            <div class="col-lg-4 mb-4">
+                {% if recommendation %}
+                <div class="recommendation-card fade-in">
+                    <h5><i class="fas fa-lightbulb me-2"></i>Recommendation</h5>
+                    <div class="price-value">{{ recommendation.action }}</div>
+                    <p class="mb-2">{{ recommendation.reason }}</p>
+                    <hr>
+                    <small>
+                        <strong>Best Time:</strong> {{ recommendation.best_time }}<br>
+                        <strong>Expected Price:</strong> ₹{{ "%.2f"|format(recommendation.best_price) }}
+                    </small>
+                </div>
+                {% endif %}
+
+                <!-- Market Comparison -->
+                {% if comparison %}
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-balance-scale me-2"></i>Market Comparison</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for market, stats in comparison.items() %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ market }}</span>
+                            <span class="badge bg-primary">₹{{ "%.2f"|format(stats.mean) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Plot -->
+        {% if plot_path %}
+        <div class="card fade-in">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-area me-2"></i>Price Visualization</h4>
+            </div>
+            <div class="card-body">
+                <div class="plot-container">
+                    <img src="{{ plot_path }}" alt="Price Forecast Chart" class="img-fluid">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    {% endblock %}
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Agriculture Price Forecasting System. Built with Flask and Machine Learning.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Dynamic dropdown loading
+        document.getElementById('stateSelect').addEventListener('change', function() {
+            const state = this.value;
+            const districtSelect = document.getElementById('districtSelect');
+            const marketSelect = document.getElementById('marketSelect');
+            
+            // Clear dependent dropdowns
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            marketSelect.innerHTML = '<option value="">Select Market</option>';
+            
+            if (state) {
+                fetch(`/api/districts/${encodeURIComponent(state)}`)
+                    .then(response => response.json())
+                    .then(districts => {
+                        districts.forEach(district => {
+                            const option = document.createElement('option');
+                            option.value = district;
+                            option.textContent = district;
+                            districtSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error loading districts:', error));
+            }
+        });
+        
+        document.getElementById('commoditySelect').addEventListener('change', updateMarkets);
+        document.getElementById('districtSelect').addEventListener('change', updateMarkets);
+        
+        function updateMarkets() {
+            const state = document.getElementById('stateSelect').value;
+            const district = document.getElementById('districtSelect').value;
+            const commodity = document.getElementById('commoditySelect').value;
+            const marketSelect = document.getElementById('marketSelect');
+            
+            marketSelect.innerHTML = '<option value="">Select Market</option>';
+            
+            if (state && district && commodity) {
+                fetch(`/api/markets/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${encodeURIComponent(commodity)}`)
+                    .then(response => response.json())
+                    .then(markets => {
+                        markets.forEach(market => {
+                            const option = document.createElement('option');
+                            option.value = market;
+                            option.textContent = market;
+                            marketSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error loading markets:', error));
+            }
+        }
+        
+        // Form submission with loading spinner
+        document.getElementById('forecastForm').addEventListener('submit', function() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+        });
+        
+        // Auto-hide alerts
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
