@@ -317,7 +317,6 @@ For issues and questions:
 -  Export functionality (PDF, Excel)
 -  Email alerts for price changes
 
-**Built with ❤️ for farmers and agricultural businesses**
 
 Price_forecast_model.pkl file can be found here: https://drive.google.com/file/d/16rsqxOHojliwx_RahhwiKM0rYkhxwlcu/view?usp=sharing
 
